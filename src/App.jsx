@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
+import { signInWithRedirect, signInWithPopup, getRedirectResult, onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
+
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
 import { auth, db, googleProvider } from "./firebase.js";
 import { phaseForDay } from "./data.js";
-import Bar from "./components/Bar.jsx";
 import Film from "./components/Film.jsx";
 import LogScreen from "./components/LogScreen.jsx";
 import CycleMap from "./components/CycleMap.jsx";
@@ -64,7 +65,7 @@ export default function App() {
     });
   },[]);
 
-  const signInWithGoogle=()=>signInWithRedirect(auth, googleProvider);
+  const signInWithGoogle=()=>isMobile ? signInWithPopup(auth, googleProvider).catch(e=>console.error("Popup error:",e)) : signInWithRedirect(auth, googleProvider);
   const handleSignOut=()=>firebaseSignOut(auth);
 
   // ── FIRESTORE HELPERS ──
@@ -226,7 +227,7 @@ export default function App() {
   return (
     <div style={BASE}>
       {showChart&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(13,11,20,.96)",zIndex:100,display:"flex",flexDirection:"column",padding:"32px 24px 48px",overflowY:"auto"}}>
+        <div style={{position:"fixed",inset:0,background:"rgba(13,11,20,.96)",zIndex:100,display:"flex",flexDirection:"column",padding:"56px 24px 48px",overflowY:"auto"}}>
           <button onClick={()=>setShowChart(false)} style={{background:"none",border:"none",color:"rgba(255,255,255,.35)",fontSize:13,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",textAlign:"left",padding:0,marginBottom:36}}>← close</button>
           <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:32,fontWeight:700,lineHeight:1.2,marginBottom:8}}>
             You are here.
@@ -271,7 +272,7 @@ export default function App() {
         </div>
       )}
 
-      <div style={{padding:"20px 24px 0"}}>
+      <div style={{padding:"52px 24px 0"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:28}}>
           <button onClick={()=>setScreen("home")} style={{background:"none",border:"none",color:"rgba(255,255,255,.3)",fontSize:13,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",padding:0,letterSpacing:".3px"}}>← back</button>
           <div style={{fontFamily:"'DM Mono',monospace",fontSize:12,color:"rgba(255,255,255,.35)"}}>Day {day} / {cycleLen}</div>
@@ -306,17 +307,20 @@ export default function App() {
       <div style={{padding:"28px 24px 100px",animation:"fadeIn .25s ease"}} key={tab}>
 
         {tab==="today"&&<>
-          <div style={{marginBottom:36}}>
-            <div style={{fontSize:10,letterSpacing:"2px",textTransform:"uppercase",color:"rgba(255,255,255,.3)",marginBottom:20}}>Hormone levels</div>
-            <Bar label="Estrogen" value={phase.hormones.estrogen} color="#e07fa0"/>
-            <Bar label="Progesterone" value={phase.hormones.progesterone} color="#8b6fd4"/>
-            <Bar label="Serotonin" value={phase.hormones.serotonin} color="rgba(255,255,255,.6)"/>
+          <HormoneGraph day={day} cycleLen={cycleLen} phase={phase}/>
+
+          <div style={{height:1,background:"rgba(255,255,255,.06)",margin:"28px 0"}}/>
+
+          <div style={{marginBottom:28}}>
+            <div style={{fontSize:10,letterSpacing:"2px",textTransform:"uppercase",color:"rgba(255,255,255,.3)",marginBottom:16}}>How you feel</div>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:28,fontWeight:700,lineHeight:1.2,marginBottom:10}}>{phase.feel}</div>
+            <div style={{fontSize:13,color:"rgba(255,255,255,.4)"}}>{phase.mood}</div>
           </div>
 
           <div style={{height:1,background:"rgba(255,255,255,.06)",marginBottom:28}}/>
 
-          {phase.decisionBlock&&(
-            <div style={{marginBottom:28,background:"rgba(201,79,79,.08)",border:"1px solid rgba(201,79,79,.2)",borderRadius:10,padding:"18px 20px"}}>
+          {phase.decisionBlock?(
+            <div style={{background:"rgba(201,79,79,.08)",border:"1px solid rgba(201,79,79,.2)",borderRadius:10,padding:"18px 20px"}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
                 <span style={{fontSize:14}}>🚫</span>
                 <div style={{fontSize:12,letterSpacing:"1.5px",textTransform:"uppercase",color:"#c94f4f",fontWeight:600}}>Decision Blocker Active</div>
@@ -329,19 +333,20 @@ export default function App() {
                 </div>
               ))}
             </div>
-          )}
-
-          <div style={{height:1,background:"rgba(255,255,255,.06)",marginBottom:28}}/>
-          <div style={{fontSize:10,letterSpacing:"2px",textTransform:"uppercase",color:"rgba(255,255,255,.3)",marginBottom:16}}>What's happening</div>
-          {phase.why.slice(0,2).map(([h,s,r],i)=>(
-            <div key={i} style={{paddingBottom:20,marginBottom:20,borderBottom:"1px solid rgba(255,255,255,.05)"}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:8}}>
-                <div style={{fontSize:14,fontWeight:600,color:"white"}}>{h}</div>
-                <div style={{fontSize:11,fontFamily:"'DM Mono',monospace",color:phase.color}}>{s}</div>
-              </div>
-              <p style={{fontSize:13,color:"rgba(255,255,255,.4)",lineHeight:1.7}}>{r}</p>
+          ):(
+            <div style={{background:`${phase.color}0a`,border:`1px solid ${phase.color}22`,borderRadius:10,padding:"18px 20px"}}>
+              <div style={{fontSize:12,letterSpacing:"1.5px",textTransform:"uppercase",color:phase.color,fontWeight:600,marginBottom:14}}>This phase is good for</div>
+              {phase.survival.slice(0,3).map(([title,desc],i)=>(
+                <div key={i} style={{display:"flex",alignItems:"flex-start",gap:10,padding:"9px 0",borderTop:i===0?"none":`1px solid ${phase.color}15`}}>
+                  <div style={{width:4,height:4,borderRadius:"50%",background:phase.color,flexShrink:0,marginTop:6}}/>
+                  <div>
+                    <div style={{fontSize:14,color:"white",fontWeight:500,marginBottom:2}}>{title}</div>
+                    <div style={{fontSize:12,color:"rgba(255,255,255,.4)",lineHeight:1.5}}>{desc}</div>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </>}
 
         {tab==="map"&&<CycleMap cycleLen={cycleLen} logs={logs} today={day} cycleNum={cycleNum} phase={phase} lastPeriod={lastPeriod}/>}

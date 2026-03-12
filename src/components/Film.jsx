@@ -26,7 +26,7 @@ export default function Film({ phase, onClose }) {
   const symptoms = ["Brain fog","Low serotonin","Mood drop","Cortisol spike"];
 
   return (
-    <div style={{position:"fixed",inset:0,zIndex:200,background:"#08060e",display:"flex",flexDirection:"column",maxWidth:430,margin:"0 auto",fontFamily:"'DM Sans',sans-serif",color:"white",padding:"24px 24px 0"}}>
+    <div style={{position:"fixed",inset:0,zIndex:200,background:"#08060e",display:"flex",flexDirection:"column",maxWidth:430,margin:"0 auto",fontFamily:"'DM Sans',sans-serif",color:"white",padding:"56px 24px 0"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24}}>
         <div>
           <div style={{fontSize:10,letterSpacing:"2px",textTransform:"uppercase",color:"rgba(255,255,255,.3)",marginBottom:4}}>Inside your hormones</div>

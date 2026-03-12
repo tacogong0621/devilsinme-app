@@ -12,7 +12,7 @@ export default function LogScreen({ day, cycleNum, cycleLen, logs, onSave, onClo
   const save=()=>{onSave(key,{symptoms:sel,intensity,note,day,ts:Date.now()});setSaved(true);setTimeout(onClose,900);};
   return (
     <div style={{position:"fixed",inset:0,zIndex:150,background:"#08060e",display:"flex",flexDirection:"column",maxWidth:430,margin:"0 auto",fontFamily:"'DM Sans',sans-serif",color:"white",overflowY:"auto"}}>
-      <div style={{padding:"24px 24px 0",display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:32}}>
+      <div style={{padding:"56px 24px 0",display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:32}}>
         <div>
           <div style={{fontSize:10,letterSpacing:"2px",textTransform:"uppercase",color:"rgba(255,255,255,.3)",marginBottom:6}}>Daily log · Day {day}</div>
           <div style={{fontSize:20,fontWeight:600}}>How are you today?</div>
